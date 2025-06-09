@@ -30,6 +30,7 @@ I initially tested 2 layers but after trying dropout, and other tweaks, just one
 
 - Two layers weren’t needed — didn’t improve anything
 - The data and features (just word counts) are probably too limited to go much further
+- The difference in message styles in the chat I tested wasn't sufficient to make predictions more accurate (as a human I wouldn't be able to tell that much more accurately without knowing the context)
 
 ---
 
