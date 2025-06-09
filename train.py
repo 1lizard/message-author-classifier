@@ -6,26 +6,38 @@ from collections import Counter
 import re
 import random
 df = pd.read_csv("messages.csv")
+
 texts = df["text"].tolist()
 labels = df["label"].tolist()
+
 def tokenize(text):
     text = re.sub(r'[^\w\s]', '', text.lower())
     return text.split()
 tokenized_texts = [tokenize(text) for text in texts]
 
 all_words = [word for tokens in tokenized_texts for word in tokens]
-most_common = Counter(all_words).most_common(1000)
+most_common = Counter(all_words).most_common(2000)
 vocab = {word: idx for idx, (word, _) in enumerate(most_common)}
 
-def vectorize_tf(tokens):
+def compute_idf(tokenized_texts, vocab):
+    doc_count = len(tokenized_texts)
+    idf = {}
+    for word in vocab:
+        docs_with_word = sum(1 for tokens in tokenized_texts if word in tokens)
+        idf[word] = torch.log(torch.tensor(doc_count / (1 + docs_with_word), dtype=torch.float32))
+    return idf
+
+idf = compute_idf(tokenized_texts, vocab)
+
+def vectorize_tfidf(tokens):
     vec = torch.zeros(len(vocab))
     counts = Counter(tokens)
     for word, count in counts.items():
         if word in vocab:
-            vec[vocab[word]] = count / len(tokens)
+            vec[vocab[word]] = (count / len(tokens)) * idf[word]
     return vec
 
-vectors = [vectorize_tf(tokens) for tokens in tokenized_texts]
+vectors = [vectorize_tfidf(tokens) for tokens in tokenized_texts]
 label_tensors = [torch.tensor([label], dtype=torch.float32) for label in labels]
 
 data = list(zip(vectors, label_tensors))
@@ -38,21 +50,20 @@ test_data = data[split:]
 class SimpleNN(nn.Module):
     def __init__(self, input_size):
         super().__init__()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(64, 1)
+        self.fc1 = nn.Linear(input_size, 1)
+
         self.sigmoid = nn.Sigmoid()
     def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.sigmoid(self.fc2(x))
+        x = self.sigmoid(self.fc1(x))
+
         return x
 
 model = SimpleNN(input_size=len(vocab))
 
 criterion = nn.BCELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-epochs = 10
+epochs = 20
 for epoch in range(epochs):
     total_loss = 0
     model.train()
@@ -93,10 +104,10 @@ while True:
     if user_input.lower() == 'q':
         break
 
-    vec = vectorize_tf(tokenize(user_input))
+    vec = vectorize_tfidf(tokenize(user_input))
     with torch.no_grad():
         output = model(vec)
         pred = (output > 0.5).float().item()
 
-    author = "You (Liza)" if pred == 1.0 else "Other person"
+    author = "Me" if pred == 1.0 else "Other person"
     print(f"→ Predicted author: {author}")

@@ -1,9 +1,9 @@
 import json
 import pandas as pd
 
-json_path = "result.json"
+json_path = "result2.json"
 your_name = "Liza Tsoy"
-max_messages = 5000
+max_messages = 7000
 
 with open(json_path, "r", encoding="utf-8") as f:
     data = json.load(f)
