@@ -2,7 +2,7 @@ import json
 import pandas as pd
 
 json_path = "result2.json"
-your_name = "Liza Tsoy"
+your_name = ""
 max_messages = 7000
 
 with open(json_path, "r", encoding="utf-8") as f:
@@ -27,7 +27,6 @@ for msg in data.get("messages", []):
     if len(rows) >= max_messages:
         break
 
-# === SAVE TO CSV ===
 df = pd.DataFrame(rows)
 df.to_csv("messages.csv", index=False)
 print(f"Saved {len(df)} messages to messages.csv")

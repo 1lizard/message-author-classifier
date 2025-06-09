@@ -19,7 +19,7 @@ all_words = [word for tokens in tokenized_texts for word in tokens]
 most_common = Counter(all_words).most_common(2000)
 vocab = {word: idx for idx, (word, _) in enumerate(most_common)}
 
-def compute_idf(tokenized_texts, vocab):
+def compute_idf(tokenized_texts, vocab): #computing inverse document frequency
     doc_count = len(tokenized_texts)
     idf = {}
     for word in vocab:
@@ -29,7 +29,7 @@ def compute_idf(tokenized_texts, vocab):
 
 idf = compute_idf(tokenized_texts, vocab)
 
-def vectorize_tfidf(tokens):
+def vectorize_tfidf(tokens): #vectorising tokens
     vec = torch.zeros(len(vocab))
     counts = Counter(tokens)
     for word, count in counts.items():
@@ -47,7 +47,7 @@ split = int(len(data) * 0.8)
 train_data = data[:split]
 test_data = data[split:]
 
-class SimpleNN(nn.Module):
+class SimpleNN(nn.Module): #model setup
     def __init__(self, input_size):
         super().__init__()
         self.fc1 = nn.Linear(input_size, 1)
@@ -64,7 +64,7 @@ criterion = nn.BCELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 epochs = 20
-for epoch in range(epochs):
+for epoch in range(epochs): #trainign
     total_loss = 0
     model.train()
     for x, y in train_data:
@@ -90,7 +90,7 @@ for epoch in range(epochs):
     correct_test=0
     total_test=0
     with torch.no_grad():
-        for x, y in test_data:
+        for x, y in test_data: #testing
             output = model(x)
             pred = (output > 0.5).float()
             correct_test += (pred == y).sum().item()
@@ -99,7 +99,7 @@ for epoch in range(epochs):
 
     print(f"Train Accuracy: {train_acc:.4f} | Test Accuracy: {test_acc:.4f}")
 
-while True:
+while True: #predict with user inputted messages
     user_input = input("\nType a message (or 'q' to quit): ")
     if user_input.lower() == 'q':
         break
