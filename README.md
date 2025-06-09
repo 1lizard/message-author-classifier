@@ -1,4 +1,4 @@
-# Chat Author Classifier
+# Message Author Classifier
 
 This is a little project where I trained a neural network to guess who wrote a message in a chat — me or someone else.
 
